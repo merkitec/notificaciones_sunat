@@ -1,75 +1,126 @@
+import os
 import time
-from os import path
+import configparser
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as ec
-from selenium.webdriver.common.keys import Keys
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.common.exceptions import TimeoutException
-from selenium.common.exceptions import ElementClickInterceptedException
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support.ui import Select
 from selenium.webdriver.chrome.service import Service as ChromeService
-import datetime
-import pyautogui as robot
+from webdriver_manager.chrome import ChromeDriverManager
 
-######## V A R I A B L E S   G E N E R A L E S   ###########
+# Load environment variables
+RUC = os.getenv("SUNAT_RUC")
+USER = os.getenv("SUNAT_USER")
+PSW = os.getenv("SUNAT_PSW")
 
+# Load configuration from config.ini
+config = configparser.ConfigParser()
+config.read("config.ini")
 
-def prueba_v2():
+import requests
+
+def post_to_sunat(url, cookies):
+    """
+    Makes an HTTP POST request to the given URL with specified headers and cookies.
+
+    :param url: The URL to make the POST request to.
+    :param cookies: A dictionary of cookies to include in the request.
+    :return: The response object from the request.
+    """
+    headers = {
+        "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "host": "e-menu.sunat.gob.pe",
+        "origin": "https://e-menu.sunat.gob.pe",
+        "referer": "https://e-menu.sunat.gob.pe/cl-ti-itmenu/MenuInternet.htm?pestana=*&agrupacion=*",
+        "sec-fetch-mode": "cors",
+        "sec-fetch-site": "same-origin",
+    }
+
+    # Example payload, update as required
+    payload = {
+        "action": "prevApp"
+    }
+    cookie_hdr = f'cookie:{"".join(f"{key}={value};" for key, value in cookies.items())}'
+    try:
+        response = requests.post(url, headers=headers, cookies=cookie_hdr, data=payload)
+        print("Status Code:", response.status_code)
+        print("Response Body:", response.text)
+        return response
+    except requests.RequestException as e:
+        print("An error occurred during the POST request:", e)
+        return None
     
-    url_start = 'https://e-menu.sunat.gob.pe/cl-ti-itmenu/MenuInternet.htm'
+def get_all_cookies(driver):
+    """
+    Retrieves all cookies from the browser session.
+    
+    :param driver: Selenium WebDriver instance
+    :return: Dictionary of cookies with cookie names as keys and their attributes as values
+    """
+    cookies = driver.get_cookies()
+    return {cookie['name']: cookie for cookie in cookies}
 
-    ruc = '20606208414'
+def main():
+    # Ensure credentials are set
+    if not all([RUC, USER, PSW]):
+        raise ValueError("Environment variables for login credentials are not set!")
 
-    user = 'ALLODANS'
+    # Load URL and XPath from config.ini
+    url_start = config["WEBSITE"]["url_start"]
+    x_input_login_ruc = config["XPATHS"]["x_input_login_ruc"]
+    x_input_login_user = config["XPATHS"]["x_input_login_user"]
+    x_input_login_psw = config["XPATHS"]["x_input_login_psw"]
+    x_bottom_login_ingreso = config["XPATHS"]["x_bottom_login_ingreso"]
+    x_bottom_buzon = config["XPATHS"]["x_bottom_buzon"]
+    user_data_dir = config["TEMP"]["user_data_dir"]
 
-    psw = 'fulsildsp'
-
-    ######## X PATH NECESARIOS #######
-
-    x_input_login_ruc = 'html//input[@id="txtRuc"]'
-
-    x_input_login_user = 'html//input[@id="txtUsuario"]'
-
-    x_input_login_psw = 'html//input[@id="txtContrasena"]'
-
-    x_bottom_login_ingreso = 'html//button[@id="btnAceptar"]'
-
-    x_bottom_buzon = 'html//a[@id="aOpcionBuzon"]'
-
-
-
-    # O P C I O N E S     S E L E N I U M:
-
+    # Selenium options
     opciones = webdriver.ChromeOptions()
-
-    opciones.add_experimental_option("excludeSwitches",['enable-automation'])
-    prefs = {"credentials_enable_service": False,"profile.password_manager_enabled": False}
+    opciones.add_experimental_option("excludeSwitches", ['enable-automation'])
+    prefs = {"credentials_enable_service": False, "profile.password_manager_enabled": False}
     opciones.add_experimental_option("prefs", prefs)
-    opciones.add_argument("user-data-dir=C:\\Users\\josej\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 3")
-    driver =  webdriver.Chrome(options=opciones)
-    driver.maximize_window()
-    wait = WebDriverWait(driver,60)
-
-
-    ########   P R O C E S O      G E N E R A L   ###########
-
-    ##### Ingreso a SUNAT
-
-    driver.get(url_start)
-
-    # Ingresando datos para iniciar sesión:
-    wait.until(ec.visibility_of_element_located((By.XPATH,x_input_login_ruc)))
-    driver.find_element(By.XPATH,x_input_login_ruc).send_keys(ruc)
-    driver.find_element(By.XPATH,x_input_login_user).send_keys(user)
-    driver.find_element(By.XPATH,x_input_login_psw).send_keys(psw)
-    time.sleep(0.7)
-    driver.find_element(By.XPATH,x_bottom_login_ingreso).click()
-    driver.find_element(By.XPATH,x_bottom_buzon).click()
-    time.sleep(10)
+    opciones.add_argument(f"user-data-dir={user_data_dir}")
     
+    # Initialize the browser driver
+    driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=opciones)
+    driver.maximize_window()
+    wait = WebDriverWait(driver, 60)
 
+    try:
+        # Open the SUNAT login page
+        driver.get(url_start)
 
-prueba_v2()
+        # Enter login details
+        wait.until(ec.visibility_of_element_located((By.XPATH, x_input_login_ruc)))
+        driver.find_element(By.XPATH, x_input_login_ruc).send_keys(RUC)
+        driver.find_element(By.XPATH, x_input_login_user).send_keys(USER)
+        driver.find_element(By.XPATH, x_input_login_psw).send_keys(PSW)
+        time.sleep(0.7)
+
+        # Submit login form
+        driver.find_element(By.XPATH, x_bottom_login_ingreso).click()
+
+        # Navigate to "Buzón"
+        wait.until(ec.element_to_be_clickable((By.XPATH, x_bottom_buzon)))
+        driver.find_element(By.XPATH, x_bottom_buzon).click()
+        
+        time.sleep(10)
+
+        # Get all cookies
+        cookies = get_all_cookies(driver)
+        print("Retrieved Cookies:", cookies)
+
+        # Post menu=buzon to get the final cookies
+        response = post_to_sunat(url_start, cookies)
+
+        # Get all last cookies
+        cookies = get_all_cookies(driver)
+
+        # Post https://ww1.sunat.gob.pe/ol-ti-itvisornoti/visor/consultarAlertas
+
+    finally:
+        # Close the browser
+        driver.quit()
+
+if __name__ == "__main__":
+    main()
