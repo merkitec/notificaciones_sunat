@@ -3,7 +3,8 @@ import time
 import configparser
 import platform
 
-from selenium import webdriver
+# from selenium import webdriver
+from seleniumwire import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -23,6 +24,8 @@ config.read("config.ini")
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+logging.getLogger("seleniumwire.server").setLevel(level=logging.INFO)
+logging.getLogger("seleniumwire.handler").setLevel(level=logging.INFO)
 
 class SeleniumRpa:
     def __init__(self, browser="chrome", options=None, timeout=30, headless=False):
