@@ -40,7 +40,7 @@ def post_to_sunat(url, cookies):
     payload = {
         "action": "prevApp"
     }
-    cookie_hdr = f'cookie:{"".join(f"{key}={value};" for key, value in cookies.items())}'
+    cookie_hdr = "".join(["".join([f"{key}={value[k]}; " for k in value if k == 'value']) for key, value in cookies.items()])
     try:
         response = requests.post(url, headers=headers, cookies=cookie_hdr, data=payload)
         print("Status Code:", response.status_code)
@@ -59,6 +59,23 @@ def get_all_cookies(driver):
     """
     cookies = driver.get_cookies()
     return {cookie['name']: cookie for cookie in cookies}
+
+def make_post_request(driver, post_url, data):
+    # Get the request from the login process
+    requests = driver.requests
+
+    # Find the request that matches the login request (adjust the filter as needed)
+    login_request = next(r for r in requests if r.response.status_code == 200 and r.url == config["WEBSITE"]["url_start"])
+
+    # Extract headers and cookies
+    headers = login_request.headers
+    cookies = login_request.cookies
+
+    # Make the POST request with the extracted headers and cookies
+    response = requests.post(post_url, headers=headers, cookies=cookies, data=data)
+
+    return response
+
 
 def main():
     # Ensure credentials are set
@@ -111,7 +128,12 @@ def main():
         print("Retrieved Cookies:", cookies)
 
         # Post menu=buzon to get the final cookies
-        response = post_to_sunat(url_start, cookies)
+        payload = {
+            "action": "prevApp"
+        }
+        # response = post_to_sunat(url_start, cookies)
+        response = make_post_request(driver, url_start, payload)
+        print(response)
 
         # Get all last cookies
         cookies = get_all_cookies(driver)
