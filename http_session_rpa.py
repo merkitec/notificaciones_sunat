@@ -4,12 +4,12 @@ import time
 import logging
 import os
 
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
 
 from selenium_rpa import SeleniumRpa
+from bs4 import BeautifulSoup
+import json
+import pandas as pd
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -165,7 +165,7 @@ class HttpSessionRpa:
         # Open mailbox
         x_bottom_buzon = config["XPATHS"]["x_bottom_buzon"]
         workflow = [
-            {"action": "click", "by": By.XPATH, "value": x_bottom_buzon, "delay": 10},
+            {"action": "click", "by": By.XPATH, "value": x_bottom_buzon, "delay": 6},
         ]
         self.automator.execute_workflow(config["WEBSITE"]["url_start"], workflow)
         self.load_info_response()
@@ -316,22 +316,57 @@ class HttpSessionRpa:
 
 if __name__ == "__main__":
     # Initialize AuthenticatedSession
-    session = HttpSessionRpa(headless=True)
+    session = HttpSessionRpa(headless=False)
 
     try:
         # Perform login
         session.open_mailbox()
 
-        response = session.menu_item()       
-        session.load_info_response(response.cookies)
+        # Wait for the "quotes" divs to load
+        # wait = WebDriverWait(session.automator.driver, 3)
+        # notification_elements = wait.until(EC.visibility_of_element_located((By.ID, "listaMensajes")))
 
-        response = session.listar_carpetas()
-        session.load_info_response(response.cookies)
+        notification_data = []        
+        session.automator.driver.switch_to.frame(session.automator.driver.find_element(By.NAME, "iframeApplication"))
+        notification_elements = session.automator.get_all_elements(By.XPATH, '//ul[@id="listaMensajes"]/li')
+        # notification_elements = notification_list.find_elements_by_tag_name("li")
 
-        response = session.consultar_alertas()
-        session.load_info_response(response.cookies)
+        for notification in notification_elements:
+            print(notification.get_attribute("outerHTML"))
+            soup = BeautifulSoup(notification.get_attribute("outerHTML"), 'html.parser')
 
-        response = session.list_noti_men_pag()
+            subject = soup.find('a', class_="linkMensaje text-muted").text
+            publish_date = soup.find('small', class_="text-muted fecPublica").text
+            id = notification.get_property('id')
+            type = ""
+            if len(soup.select('div>span[class*="label tag"]')) > 0:
+                type = soup.select('div>span[class*="label tag"]')[0].text
+
+            notification_info = {
+                "id": id,
+                "subject": subject,
+                "publish_date": publish_date,
+                "type": type
+            }
+            notification_data.append(notification_info)
+        session.automator.driver.switch_to.default_content()
+
+        with open('notifications.json', 'w') as json_file:
+            json.dump(notification_data, json_file, indent=4)
+
+        df = pd.DataFrame(notification_data)
+        df.to_excel("notifications.xlsx")
+
+        # response = session.menu_item()       
+        # session.load_info_response(response.cookies)
+
+        # response = session.listar_carpetas()
+        # session.load_info_response(response.cookies)
+
+        # response = session.consultar_alertas()
+        # session.load_info_response(response.cookies)
+
+        # response = session.list_noti_men_pag()
 
     except Exception as e:
         logger.exception(e)

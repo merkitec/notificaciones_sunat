@@ -39,9 +39,14 @@ class SeleniumRpa:
         print("Python version:", platform.python_version())
         print("Architecture:", platform.architecture())
         print("Processor Arch:", os.environ["PROCESSOR_ARCHITECTURE"])
-        
+
         if browser.lower() == "chrome":
             options = options or webdriver.ChromeOptions()
+            if headless:
+                options.add_argument("--headless")
+            options.add_argument("--disable-gpu")
+            options.add_argument("--no-sandbox")     
+
             self._driver = webdriver.Chrome(
                 service=ChromeService(ChromeDriverManager().install()), options=options
             )
@@ -56,11 +61,6 @@ class SeleniumRpa:
         else:
             raise ValueError("Unsupported browser. Use 'chrome' or 'firefox'.")
         logger.info("Selenium WebDriver initialized.")
-
-        if headless:
-            options.add_argument("--headless")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--no-sandbox")
 
         self._driver.maximize_window()
         self.wait = WebDriverWait(self._driver, timeout)
@@ -87,6 +87,16 @@ class SeleniumRpa:
         """
         return self.wait.until(EC.visibility_of_element_located((by, value)))
 
+    def wait_and_get_elements(self, by, value):
+        """
+        Waits for an element to be visible and returns it.
+
+        :param by: Locator strategy (e.g., By.XPATH, By.ID).
+        :param value: The locator value.
+        :return: The WebElement.
+        """
+        return self.wait.until(EC.visibility_of_all_elements_located((by, value)))
+
     def get_text(self, by, value):
         """
         Gets the text content of an element.
@@ -97,6 +107,28 @@ class SeleniumRpa:
         """
         element = self.wait_and_get_element(by, value)
         return element.text
+
+    def get_element(self, by, value):
+        """
+        Gets the text content of an element.
+
+        :param by: Locator strategy.
+        :param value: The locator value.
+        :return: The element.
+        """
+        element = self.wait_and_get_element(by, value)
+        return element
+
+    def get_all_elements(self, by, value):
+        """
+        Gets all the elements of a HTML Tag.
+
+        :param by: Locator strategy.
+        :param value: The locator value.
+        :return: The elements.
+        """
+        element = self.wait_and_get_elements(by, value)
+        return element
 
     def click_element(self, by, value):
         """
