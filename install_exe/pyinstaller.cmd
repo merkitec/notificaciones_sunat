@@ -1,0 +1,1 @@
+pyinstaller --noconfirm --onefile --console --icon notificaciones_sunat.ico --paths=C:\Apps\Anaconda3\envs\notificaciones_sunat\Lib main.py
