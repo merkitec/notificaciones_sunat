@@ -3,6 +3,7 @@ import configparser
 import time
 import logging
 import os
+from datetime import datetime
 
 from selenium.webdriver.common.by import By
 
@@ -12,22 +13,11 @@ import json
 import pandas as pd
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logging.getLogger("seleniumwire.server").setLevel(level=logging.INFO)
-logging.getLogger("seleniumwire.handler").setLevel(level=logging.INFO)
-
-# Load configuration from config.ini
-config = configparser.ConfigParser()
-config.read("config.ini")
-
-# Load environment variables
-RUC = os.getenv("SUNAT_RUC")
-USER = os.getenv("SUNAT_USER")
-PSW = os.getenv("SUNAT_PSW")
 
 class HttpSessionRpa:
-    def __init__(self, headless=False):
+    def __init__(self, headless=False, config=None):
         """        
         Initialize the Selenium WebDriver and the requests session.
 
@@ -35,7 +25,7 @@ class HttpSessionRpa:
         :param headless: Boolean indicating whether to run browser in headless mode.
         """
         self.current_cookies = []
-
+        self.config = config
         self.automator = SeleniumRpa(headless=headless)
 
         # Initialize requests session
@@ -135,11 +125,11 @@ class HttpSessionRpa:
         logger.info(f"Received response with status code {response.status_code}")
         return response
 
-    def login(self):
-        x_input_login_ruc = config["XPATHS"]["x_input_login_ruc"]
-        x_input_login_user = config["XPATHS"]["x_input_login_user"]
-        x_input_login_psw = config["XPATHS"]["x_input_login_psw"]
-        x_bottom_login_ingreso = config["XPATHS"]["x_bottom_login_ingreso"]
+    def login(self, RUC, USER, PSW):
+        x_input_login_ruc = self.config["XPATHS"]["x_input_login_ruc"]
+        x_input_login_user = self.config["XPATHS"]["x_input_login_user"]
+        x_input_login_psw = self.config["XPATHS"]["x_input_login_psw"]
+        x_bottom_login_ingreso = self.config["XPATHS"]["x_bottom_login_ingreso"]
 
         workflow = [
             {"action": "enter_text", "by": By.XPATH, "value": x_input_login_ruc, "text": RUC},
@@ -147,15 +137,10 @@ class HttpSessionRpa:
             {"action": "enter_text", "by": By.XPATH, "value": x_input_login_psw, "text": PSW},
             {"action": "click", "by": By.XPATH, "value": x_bottom_login_ingreso, "delay": 10},
         ]
-        self.automator.execute_workflow(config["WEBSITE"]["url_start"], workflow)
+        self.automator.execute_workflow(self.config["WEBSITE"]["url_start"], workflow)
 
-    def open_mailbox(self, wait_time=5):
-        """
-        Perform login using Selenium WebDriver.
-
-        :param wait_time: Time to wait after login (in seconds).
-        """
-        self.login()
+    def open_mailbox(self, login_credentials, wait_time=5):
+        self.login(login_credentials["RUC"], login_credentials["USER"], login_credentials["PSW"])
 
         # Wait for login to complete
         time.sleep(wait_time)  # Adjust as necessary or implement explicit waits
@@ -163,11 +148,11 @@ class HttpSessionRpa:
         self.load_info_response()
         
         # Open mailbox
-        x_bottom_buzon = config["XPATHS"]["x_bottom_buzon"]
+        x_bottom_buzon = self.config["XPATHS"]["x_bottom_buzon"]
         workflow = [
             {"action": "click", "by": By.XPATH, "value": x_bottom_buzon, "delay": 6},
         ]
-        self.automator.execute_workflow(config["WEBSITE"]["url_start"], workflow)
+        self.automator.execute_workflow(self.config["WEBSITE"]["url_start"], workflow)
         self.load_info_response()
 
     def close(self):
@@ -179,7 +164,7 @@ class HttpSessionRpa:
 
     def menu_item(self):
         # Make a POST request : MenuInternet.htm
-        POST_URL = config["WEBSITE"]["url_start"]
+        POST_URL = self.config["WEBSITE"]["url_start"]
         POST_DATA = {
             "action": "prevApp"
         }
@@ -313,14 +298,32 @@ class HttpSessionRpa:
 
         return response
 
+    def close_extraction(self):
+        x_bottom_salir = self.config["XPATHS"]["x_bottom_logout"]
+        workflow = [
+            {"action": "click", "by": By.XPATH, "value": x_bottom_salir, "delay": 6},
+        ]
+        self.automator.execute_workflow(self.config["WEBSITE"]["url_start"], workflow)
+
 
 if __name__ == "__main__":
+    # Load configuration from config.ini
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+
     # Initialize AuthenticatedSession
-    session = HttpSessionRpa(headless=False)
+    session = HttpSessionRpa(headless=False, config=config)
+
+    # Load environment variables
+    credentials = {
+        "RUC" : os.getenv("SUNAT_RUC"),
+        "USER" : os.getenv("SUNAT_USER"),
+        "PSW" : os.getenv("SUNAT_PSW"),
+    }
 
     try:
         # Perform login
-        session.open_mailbox()
+        session.open_mailbox(credentials)
 
         # Wait for the "quotes" divs to load
         # wait = WebDriverWait(session.automator.driver, 3)
@@ -332,7 +335,7 @@ if __name__ == "__main__":
         # notification_elements = notification_list.find_elements_by_tag_name("li")
 
         for notification in notification_elements:
-            print(notification.get_attribute("outerHTML"))
+            logger.debug(notification.get_attribute("outerHTML"))
             soup = BeautifulSoup(notification.get_attribute("outerHTML"), 'html.parser')
 
             subject = soup.find('a', class_="linkMensaje text-muted").text
@@ -351,11 +354,11 @@ if __name__ == "__main__":
             notification_data.append(notification_info)
         session.automator.driver.switch_to.default_content()
 
-        with open('notifications.json', 'w') as json_file:
+        with open(f'results/notifica_{credentials["RUC"]}_{datetime.now().strftime("%Y-%m-%d %H_%M_%S")}.json', 'w') as json_file:
             json.dump(notification_data, json_file, indent=4)
 
         df = pd.DataFrame(notification_data)
-        df.to_excel("notifications.xlsx")
+        df.to_excel(f"results/notifica{credentials['RUC']}_{datetime.now().strftime('%Y-%m-%d %H_%M_%S')}.xlsx")
 
         # response = session.menu_item()       
         # session.load_info_response(response.cookies)

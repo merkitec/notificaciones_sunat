@@ -17,15 +17,9 @@ RUC = os.getenv("SUNAT_RUC")
 USER = os.getenv("SUNAT_USER")
 PSW = os.getenv("SUNAT_PSW")
 
-# Load configuration from config.ini
-config = configparser.ConfigParser()
-config.read("config.ini")
-
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+# logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logging.getLogger("seleniumwire.server").setLevel(level=logging.INFO)
-logging.getLogger("seleniumwire.handler").setLevel(level=logging.INFO)
 
 class SeleniumRpa:
     def __init__(self, browser="chrome", options=None, timeout=30, headless=False):
@@ -36,9 +30,9 @@ class SeleniumRpa:
         :param options: Browser options. Default is None.
         :param timeout: Timeout for waiting on elements. Default is 30 seconds.
         """
-        print("Python version:", platform.python_version())
-        print("Architecture:", platform.architecture())
-        print("Processor Arch:", os.environ["PROCESSOR_ARCHITECTURE"])
+        logger.info(f"Python version: {platform.python_version()}")
+        logger.info(f"Architecture: {platform.architecture()}")
+        logger.info(f"Processor Arch: {os.environ['PROCESSOR_ARCHITECTURE']}")
 
         if browser.lower() == "chrome":
             options = options or webdriver.ChromeOptions()
@@ -199,7 +193,7 @@ class SeleniumRpa:
         """Closes the browser and ends the session."""
         self._driver.quit()
 
-def login(automator):
+def login(automator, config):
     x_input_login_ruc = config["XPATHS"]["x_input_login_ruc"]
     x_input_login_user = config["XPATHS"]["x_input_login_user"]
     x_input_login_psw = config["XPATHS"]["x_input_login_psw"]
@@ -215,6 +209,10 @@ def login(automator):
 
 # Example Usage
 if __name__ == "__main__":
+    # Load configuration from config.ini
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+
     automator = SeleniumRpa()
     try:
         # actions = [
@@ -222,7 +220,7 @@ if __name__ == "__main__":
         #     {"type": "click", "by": By.LINK_TEXT, "value": "About"},
         #     {"type": "get_text", "name": "about", "by": By.TAG_NAME, "value": "p"},
         # ]
-        login(automator)
+        login(automator, config)
 
         x_bottom_logout = config["XPATHS"]["x_bottom_logout"]
         x_bottom_buzon = config["XPATHS"]["x_bottom_buzon"]
