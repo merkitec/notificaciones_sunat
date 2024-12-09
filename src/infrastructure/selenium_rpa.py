@@ -12,17 +12,12 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from webdriver_manager.chrome import ChromeDriverManager
 import logging
 
-# Load environment variables
-RUC = os.getenv("SUNAT_RUC")
-USER = os.getenv("SUNAT_USER")
-PSW = os.getenv("SUNAT_PSW")
-
 # Configure logging
 # logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class SeleniumRpa:
-    def __init__(self, browser="chrome", options=None, timeout=30, headless=False):
+    def __init__(self, browser="chrome", options=None, timeout=60, headless=False, config=None):
         """
         Initializes the web scraper with Selenium WebDriver.
 
@@ -41,6 +36,12 @@ class SeleniumRpa:
             options.add_argument("--disable-gpu")
             options.add_argument("--no-sandbox")     
 
+            options.add_experimental_option("excludeSwitches",['enable-automation'])
+            prefs = {"credentials_enable_service": False,"profile.password_manager_enabled": False}
+            options.add_experimental_option("prefs", prefs)
+            # options.add_argument("user-data-dir=C:\\Users\\\ytamayo\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 3")
+            options.add_argument(config['TEMP']['user_data_dir'])
+
             self._driver = webdriver.Chrome(
                 service=ChromeService(ChromeDriverManager().install()), options=options
             )
@@ -58,6 +59,7 @@ class SeleniumRpa:
 
         self._driver.maximize_window()
         self.wait = WebDriverWait(self._driver, timeout)
+        self.config = config
 
     @property
     def driver(self):
@@ -83,7 +85,7 @@ class SeleniumRpa:
 
     def wait_and_get_elements(self, by, value):
         """
-        Waits for an element to be visible and returns it.
+        Waits for elements to be visible and returns it.
 
         :param by: Locator strategy (e.g., By.XPATH, By.ID).
         :param value: The locator value.
@@ -104,7 +106,7 @@ class SeleniumRpa:
 
     def get_element(self, by, value):
         """
-        Gets the text content of an element.
+        Gets the web element.
 
         :param by: Locator strategy.
         :param value: The locator value.
@@ -148,7 +150,7 @@ class SeleniumRpa:
 
     def scrape(self, url, actions):
         """
-        General-purpose scraping method to navigate and extract data.
+        General-purpose scraping method to navigate and extract data. (reuse execute_workflow)
 
         :param url: The URL to scrape.
         :param actions: A list of actions (e.g., "click", "get_text", "enter_text").
@@ -156,16 +158,17 @@ class SeleniumRpa:
         """
         self.open_page(url)
         data = {}
+
         for action in actions:
             action_type = action["type"]
             by = action.get("by")
             value = action.get("value")
+
             if action_type == "get_text":
                 data[action["name"]] = self.get_text(by, value)
-            elif action_type == "click":
-                self.click_element(by, value)
-            elif action_type == "enter_text":
-                self.enter_text(by, value, action["text"])
+            else:
+                self.execute_workflow(url, actions)
+
             time.sleep(action.get("delay", 1))  # Optional delay
         return data
 
@@ -177,49 +180,55 @@ class SeleniumRpa:
         :param tasks: A list of tasks (e.g., "click", "enter_text").
         """
         self.open_page(url)
+
         for task in tasks:
-            action = task["action"]
+            action_type = task["action"]
             by = task.get("by")
             value = task.get("value")
-            if action == "click":
+
+            if action_type == "click":
                 self.click_element(by, value)
-            elif action == "enter_text":
+            elif action_type == "enter_text":
                 self.enter_text(by, value, task["text"])
-            elif action == "navigate":
+            # elif action_type == "enter_text":
+            #     self.enter_text(by, value, action_type["text"])
+            elif action_type == "navigate":
                 self.open_page(task["url"])
+
             time.sleep(task.get("delay", 1))  # Optional delay between actions
 
     def quit(self):
         """Closes the browser and ends the session."""
         self._driver.quit()
 
-def login(automator, config):
-    x_input_login_ruc = config["XPATHS"]["x_input_login_ruc"]
-    x_input_login_user = config["XPATHS"]["x_input_login_user"]
-    x_input_login_psw = config["XPATHS"]["x_input_login_psw"]
-    x_bottom_login_ingreso = config["XPATHS"]["x_bottom_login_ingreso"]
-
-    workflow = [
-        {"action": "enter_text", "by": By.XPATH, "value": x_input_login_ruc, "text": RUC},
-        {"action": "enter_text", "by": By.XPATH, "value": x_input_login_user, "text": USER},
-        {"action": "enter_text", "by": By.XPATH, "value": x_input_login_psw, "text": PSW},
-        {"action": "click", "by": By.XPATH, "value": x_bottom_login_ingreso, "delay": 10},
-    ]
-    automator.execute_workflow(config["WEBSITE"]["url_start"], workflow)
-
 # Example Usage
 if __name__ == "__main__":
+
+    # Load environment variables
+    RUC = os.getenv("SUNAT_RUC")
+    USER = os.getenv("SUNAT_USER")
+    PSW = os.getenv("SUNAT_PSW")
+
+    def login(automator, config):
+        x_input_login_ruc = config["XPATHS"]["x_input_login_ruc"]
+        x_input_login_user = config["XPATHS"]["x_input_login_user"]
+        x_input_login_psw = config["XPATHS"]["x_input_login_psw"]
+        x_bottom_login_ingreso = config["XPATHS"]["x_bottom_login_ingreso"]
+
+        workflow = [
+            {"action": "enter_text", "by": By.XPATH, "value": x_input_login_ruc, "text": RUC},
+            {"action": "enter_text", "by": By.XPATH, "value": x_input_login_user, "text": USER},
+            {"action": "enter_text", "by": By.XPATH, "value": x_input_login_psw, "text": PSW},
+            {"action": "click", "by": By.XPATH, "value": x_bottom_login_ingreso, "delay": 10},
+        ]
+        automator.execute_workflow(config["WEBSITE"]["url_start"], workflow)
+
     # Load configuration from config.ini
     config = configparser.ConfigParser()
     config.read("config.ini")
 
     automator = SeleniumRpa()
     try:
-        # actions = [
-        #     {"type": "get_text", "name": "title", "by": By.TAG_NAME, "value": "h1"},
-        #     {"type": "click", "by": By.LINK_TEXT, "value": "About"},
-        #     {"type": "get_text", "name": "about", "by": By.TAG_NAME, "value": "p"},
-        # ]
         login(automator, config)
 
         x_bottom_logout = config["XPATHS"]["x_bottom_logout"]
