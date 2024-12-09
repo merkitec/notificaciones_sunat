@@ -1,12 +1,19 @@
+from argparse import Namespace
 from logging.handlers import RotatingFileHandler
+
 from application.http_session_rpa import HttpSessionRpa
-from application.extract_notification import ExtractNotification
 from application.notification_sunat import NotificationSunat
+from infrastructure.extract_notification_manual import ExtractNotificationManual
+from infrastructure.extract_notification_llm import ExtractNotificationLLM
+from common.parameter_arguments import parse_opt
 
 import os
 import pandas as pd
 import logging
 import configparser
+
+from dotenv import load_dotenv, find_dotenv
+load_dotenv(find_dotenv())
 
 # Load configuration from config.ini
 config = configparser.ConfigParser()
@@ -25,8 +32,16 @@ logging.getLogger("seleniumwire.handler").setLevel(level=logging.WARNING)
    
 def main():
     try:
+        parser = parse_opt()
+        args = parser.parse_args()
+        logger.info(f"Args: {args}")
+
+        extractor = ExtractNotificationManual()
+        if args.extractor == "llm":
+            extractor = ExtractNotificationLLM()
+
         process_sunat = NotificationSunat(
-            ExtractNotification(), 
+            extractor, 
             HttpSessionRpa(headless=False, config=config))
 
         process_sunat.process_notification(companies=pd.read_csv('data/credenciales_ruc.csv'))        

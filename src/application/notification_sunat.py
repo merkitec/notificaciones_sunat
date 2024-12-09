@@ -3,11 +3,11 @@ import json
 import os
 import pandas as pd
 
-from application.extract_notification import ExtractNotification
+from infrastructure.extract_notification_manual import ExtractNotificationManual
 from application.http_session_rpa import HttpSessionRpa
 
 class NotificationSunat():
-    def __init__(self, extrator: ExtractNotification, session: HttpSessionRpa):
+    def __init__(self, extrator: ExtractNotificationManual, session: HttpSessionRpa):
         self.extractor = extrator
         self.session = session
 

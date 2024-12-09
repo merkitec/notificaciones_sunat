@@ -5,3 +5,7 @@ blinker==1.7.0
 beautifulsoup4
 pandas
 openpyxl
+langchain
+openai
+langchain-community
+langchain-openai

@@ -1,13 +1,15 @@
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 import logging
+import os
 
 from infrastructure.selenium_rpa import SeleniumRpa
 from application.http_session_rpa import HttpSessionRpa
+from application.extract_notification_base import ExtractNotificationBase
 
 logger = logging.getLogger(__name__)
 
-class ExtractNotification():
+class ExtractNotificationManual(ExtractNotificationBase):
     def __init__(self):
         pass
 
@@ -16,8 +18,7 @@ class ExtractNotification():
         session.automator.driver.switch_to.frame(session.automator.driver.find_element(By.NAME, "iframeApplication"))
 
         notification_elements = session.automator.get_all_elements(By.XPATH, '//ul[@id="listaMensajes"]/li')
-        # notification_elements = notification_list.find_elements_by_tag_name("li")
-
+ 
         for notification in notification_elements:
             logger.debug(notification.get_attribute("outerHTML"))
             soup = BeautifulSoup(notification.get_attribute("outerHTML"), 'html.parser')
