@@ -71,7 +71,7 @@ class HttpSessionRpa:
             {"action": "enter_text", "by": By.XPATH, "value": x_input_login_ruc, "text": RUC},
             {"action": "enter_text", "by": By.XPATH, "value": x_input_login_user, "text": USER},
             {"action": "enter_text", "by": By.XPATH, "value": x_input_login_psw, "text": PSW},
-            {"action": "click", "by": By.XPATH, "value": x_bottom_login_ingreso, "delay": 10},
+            {"action": "click", "by": By.XPATH, "value": x_bottom_login_ingreso, "delay": 5},
         ]
         self._automator.execute_workflow(self.config["WEBSITE"]["url_start"], workflow)
 
@@ -79,14 +79,14 @@ class HttpSessionRpa:
         self.login(login_credentials["RUC"], login_credentials["USER"], login_credentials["PSW"])
 
         # Wait for login to complete
-        time.sleep(wait_time)  # Adjust as necessary or implement explicit waits
+        # time.sleep(wait_time)  # Adjust as necessary or implement explicit waits
 
         # self.load_info_response()
         
         # Open mailbox
         x_bottom_buzon = self.config["XPATHS"]["x_bottom_buzon"]
         workflow = [
-            {"action": "click", "by": By.XPATH, "value": x_bottom_buzon, "delay": 6},
+            {"action": "click", "by": By.XPATH, "value": x_bottom_buzon, "delay": 5},
         ]
         self._automator.execute_workflow(self.config["WEBSITE"]["url_start"], workflow)
         # self.load_info_response()
@@ -101,7 +101,7 @@ class HttpSessionRpa:
     def close_extraction(self):
         x_bottom_salir = self.config["XPATHS"]["x_bottom_logout"]
         workflow = [
-            {"action": "click", "by": By.XPATH, "value": x_bottom_salir, "delay": 6},
+            {"action": "click", "by": By.XPATH, "value": x_bottom_salir, "delay": 5},
         ]
         self._automator.execute_workflow(self.config["WEBSITE"]["url_start"], workflow)
 

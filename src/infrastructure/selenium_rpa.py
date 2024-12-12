@@ -39,8 +39,8 @@ class SeleniumRpa:
             options.add_experimental_option("excludeSwitches",['enable-automation'])
             prefs = {"credentials_enable_service": False,"profile.password_manager_enabled": False}
             options.add_experimental_option("prefs", prefs)
-            # options.add_argument("user-data-dir=C:\\Users\\\ytamayo\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 3")
-            options.add_argument(config['TEMP']['user_data_dir'])
+            # options.add_argument("user-data-dir=C:\\Users\\ytamayo\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 3")
+            options.add_argument(f"user-data-dir={config['TEMP']['user_data_dir']}")
 
             self._driver = webdriver.Chrome(
                 service=ChromeService(ChromeDriverManager().install()), options=options
