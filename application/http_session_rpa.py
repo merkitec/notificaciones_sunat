@@ -1,4 +1,4 @@
-import requests
+# import requests
 import configparser
 import time
 import logging
@@ -29,32 +29,32 @@ class HttpSessionRpa:
         self._automator = SeleniumRpa(headless=headless, config=config)
 
         # Initialize requests session
-        self.request_session = requests.Session()
+        # self.request_session = requests.Session()
         logger.info("Requests session initialized.")
 
     @property
     def automator(self) -> SeleniumRpa:
         return self._automator
     
-    def load_info_response(self, response_cookies=None):
-        self.current_cookies = self._automator.driver.get_cookies()
-        self.__logging_info_cookies(self.current_cookies, "Web driver cookies info:")
+    # def load_info_response(self, response_cookies=None):
+    #     self.current_cookies = self._automator.driver.get_cookies()
+    #     self.__logging_info_cookies(self.current_cookies, "Web driver cookies info:")
 
-        # Extract cookies from Selenium and add them to requests session
-        selenium_cookies = self._automator.driver.get_cookies()
-        for cookie in selenium_cookies:
-            self.request_session.cookies.set(cookie['name'], cookie['value'], domain=cookie.get('domain'), path=cookie['path'])
-        logger.info("Cookies transferred to requests session.")
-        self.__logging_info_cookies(self.request_session.cookies, "Transferred cookies info:")
+    #     # Extract cookies from Selenium and add them to requests session
+    #     selenium_cookies = self._automator.driver.get_cookies()
+    #     for cookie in selenium_cookies:
+    #         self.request_session.cookies.set(cookie['name'], cookie['value'], domain=cookie.get('domain'), path=cookie['path'])
+    #     logger.info("Cookies transferred to requests session.")
+    #     self.__logging_info_cookies(self.request_session.cookies, "Transferred cookies info:")
 
-        if not response_cookies is None:
-            for cookie in response_cookies:
-                self.request_session.cookies.set(cookie.name, cookie.value, domain=cookie.domain, path=cookie.path)
+    #     if not response_cookies is None:
+    #         for cookie in response_cookies:
+    #             self.request_session.cookies.set(cookie.name, cookie.value, domain=cookie.domain, path=cookie.path)
 
-        # Optionally, set headers like User-Agent to mimic the browser
-        user_agent = self._automator.driver.execute_script("return navigator.userAgent;")
-        self.request_session.headers.update({'User-Agent': user_agent})
-        logger.info(f"User-Agent set to: {user_agent}")
+    #     # Optionally, set headers like User-Agent to mimic the browser
+    #     user_agent = self._automator.driver.execute_script("return navigator.userAgent;")
+    #     self.request_session.headers.update({'User-Agent': user_agent})
+    #     logger.info(f"User-Agent set to: {user_agent}")
 
     def __logging_info_cookies(self, cookies, msg):
         logger.info(msg)

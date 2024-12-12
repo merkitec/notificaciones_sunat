@@ -17,7 +17,7 @@ load_dotenv(find_dotenv())
 
 # Load configuration from config.ini
 config = configparser.ConfigParser()
-config.read("src/config.ini")
+config.read("config.ini")
 
 # Configure logging
 os.makedirs("logs", exist_ok=True)
