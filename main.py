@@ -5,6 +5,8 @@ from application.http_session_rpa import HttpSessionRpa
 from application.notification_sunat import NotificationSunat
 from infrastructure.extract_notification_manual import ExtractNotificationManual
 from infrastructure.extract_notification_llm import ExtractNotificationLLM
+from infrastructure.save_notification_db import SaveNotificationDb
+from infrastructure.save_notification_excel import SaveNotificationExcel
 from common.parameter_arguments import parse_opt
 
 import os
@@ -40,9 +42,14 @@ def main():
         if args.extractor == "llm":
             extractor = ExtractNotificationLLM()
 
+        save = SaveNotificationExcel()
+        if args.save_to == "db":
+            save = SaveNotificationDb()
+
         process_sunat = NotificationSunat(
             extractor, 
-            HttpSessionRpa(headless=False, config=config))
+            HttpSessionRpa(headless=False, config=config),
+            persist=save)
 
         process_sunat.process_notification(companies=pd.read_csv('data/credenciales_ruc.csv'))        
 
