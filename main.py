@@ -42,9 +42,9 @@ def main():
         if args.extractor == "llm":
             extractor = ExtractNotificationLLM()
 
-        save = SaveNotificationExcel()
+        save = SaveNotificationExcel(config=config)
         if args.save_to == "db":
-            save = SaveNotificationDb()
+            save = SaveNotificationDb(config=config)
 
         process_sunat = NotificationSunat(
             extractor, 

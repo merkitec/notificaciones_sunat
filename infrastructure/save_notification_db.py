@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 import json
 
 class SaveNotificationDb(SaveNotificationBase):
-    def __init__(self, config):
+    def __init__(self, config=None):
         super().__init__()
         self.config = config
 
@@ -19,12 +19,12 @@ class SaveNotificationDb(SaveNotificationBase):
 
         for notification in notifications:
             tipo_notificacion = [t for t in notificacion_types if str(t['nombre']).upper() == str(notification["type"]).upper()]
-            if tipo_notificacion is None:
+            if len(tipo_notificacion) == 0:
                 tipo_notificacion = [t for t in notificacion_types if str(t['nombre']).upper() == 'SIN TIPO']
             self.call_create_notificacion_endpoint(
                 notification["id"],
                 notification["subject"],
-                notification["publish_date"],
+                datetime.strptime(notification["publish_date"], "%d/%m/%Y %H:%M:%S").isoformat(),
                 ruc["id"],
                 tipo_notificacion[0]["id"],
                 False,

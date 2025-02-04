@@ -8,11 +8,11 @@ class SaveNotificationExcel(SaveNotificationBase):
         super().__init__()
         self.config = config
 
-    def save_results(self, notifications, id):   
+    def save(self, notifications, id):   
         os.makedirs(self.config["LOCAL_STORE"]['path'], exist_ok=True)
         # with open(f'{file_path}/notifica_{id_name_part}_{datetime.now().strftime("%Y.%m.%d_%H.%M.%S")}.json', 'w') as json_file:
         #     json.dump(notifications, json_file, indent=4)
 
         df = pd.DataFrame(notifications)
-        df.to_excel(f"{self.config["LOCAL_STORE"]['path']}/notificaciones_{id}_{datetime.now().strftime('%Y.%m.%d_%H.%M.%S')}.xlsx")
+        df.to_excel(f"{self.config['LOCAL_STORE']['path']}/notificaciones_{id}_{datetime.now().strftime('%Y.%m.%d_%H.%M.%S')}.xlsx")
 
