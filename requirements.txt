@@ -9,3 +9,4 @@ langchain
 openai
 langchain-community
 langchain-openai
+pydantic-settings

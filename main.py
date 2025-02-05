@@ -1,6 +1,7 @@
 from argparse import Namespace
 from logging.handlers import RotatingFileHandler
 
+from application.estudio_contable_service import EstudioContableService
 from application.http_session_rpa import HttpSessionRpa
 from application.notification_sunat import NotificationSunat
 from infrastructure.extract_notification_manual import ExtractNotificationManual
@@ -8,6 +9,7 @@ from infrastructure.extract_notification_llm import ExtractNotificationLLM
 from infrastructure.save_notification_db import SaveNotificationDb
 from infrastructure.save_notification_excel import SaveNotificationExcel
 from common.parameter_arguments import parse_opt
+from cross_cutting.settings import Settings
 
 import os
 import pandas as pd
@@ -37,6 +39,7 @@ def main():
         parser = parse_opt()
         args = parser.parse_args()
         logger.info(f"Args: {args}")
+        settings = Settings()
 
         extractor = ExtractNotificationManual()
         if args.extractor == "llm":
@@ -49,9 +52,11 @@ def main():
         process_sunat = NotificationSunat(
             extractor, 
             HttpSessionRpa(headless=False, config=config),
-            persist=save)
+            persist=save,
+            estudio_contable_svc=EstudioContableService(config=config),
+            settings=settings)
 
-        process_sunat.process_notification(companies=pd.read_csv('data/credenciales_ruc.csv'))        
+        process_sunat.process_notification()
 
     except Exception as ex:
         logger.exception(ex)
