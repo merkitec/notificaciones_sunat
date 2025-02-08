@@ -51,7 +51,7 @@ def main():
 
         process_sunat = NotificationSunat(
             extractor, 
-            HttpSessionRpa(headless=False, config=config),
+            HttpSessionRpa(headless=True, config=config),
             persist=save,
             estudio_contable_svc=EstudioContableService(config=config),
             settings=settings)

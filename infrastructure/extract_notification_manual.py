@@ -3,7 +3,6 @@ from selenium.webdriver.common.by import By
 import logging
 import os
 
-from infrastructure.selenium_rpa import SeleniumRpa
 from application.http_session_rpa import HttpSessionRpa
 from application.extract_notification_base import ExtractNotificationBase
 
