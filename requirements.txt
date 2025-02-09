@@ -10,3 +10,4 @@ openai
 langchain-community
 langchain-openai
 pydantic-settings
+lxml

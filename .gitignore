@@ -10,3 +10,4 @@ build/
 *.exe
 *.zip
 .env
+.venv/
