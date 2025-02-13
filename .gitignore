@@ -11,3 +11,4 @@ build/
 *.zip
 .env
 .venv/
+*.deb

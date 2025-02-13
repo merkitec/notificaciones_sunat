@@ -9,6 +9,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 import logging
 
@@ -27,25 +28,32 @@ class SeleniumRpa:
         """
         logger.info(f"Python version: {platform.python_version()}")
         logger.info(f"Architecture: {platform.architecture()}")
-        logger.info(f"Processor Arch: {os.environ['PROCESSOR_ARCHITECTURE']}")
+        if 'PROCESSOR_ARCHITECTURE' in os.environ:
+            logger.info(f"Processor Arch: {os.environ['PROCESSOR_ARCHITECTURE']}")
 
         if browser.lower() == "chrome":
-            options = options or webdriver.ChromeOptions()
-            if headless:
-                options.add_argument("--headless")
-            options.add_argument("--disable-gpu")
-            options.add_argument("--no-sandbox")     
-            options.add_argument('--disable-dev-shm-usage')
+            # options = options or webdriver.ChromeOptions()
+            # if headless:
+            #     options.add_argument("--headless")
+            # options.add_argument("--disable-gpu")
+            # options.add_argument("--no-sandbox")     
+            # options.add_argument('--disable-dev-shm-usage')
+            chrome_options = Options()
+            chrome_options.add_argument('--no-sandbox')
+            chrome_options.add_argument('--headless')
+            chrome_options.add_argument('--disable-dev-shm-usage')
+            chrome_options.add_argument("--disable-gpu")
 
-            options.add_experimental_option("excludeSwitches",['enable-automation'])
-            prefs = {"credentials_enable_service": False,"profile.password_manager_enabled": False}
-            options.add_experimental_option("prefs", prefs)
-            # options.add_argument("user-data-dir=C:\\Users\\ytamayo\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 3")
-            options.add_argument(f"user-data-dir={config['TEMP']['user_data_dir']}")
+            # options.add_experimental_option("excludeSwitches",['enable-automation'])
+            # prefs = {"credentials_enable_service": False,"profile.password_manager_enabled": False}
+            # options.add_experimental_option("prefs", prefs)
+            # # options.add_argument("user-data-dir=C:\\Users\\ytamayo\\AppData\\Local\\Google\\Chrome\\User Data\\Profile 3")
+            # options.add_argument(f"user-data-dir={config['TEMP']['user_data_dir']}")
 
-            self._driver = webdriver.Chrome(
-                service=ChromeService(ChromeDriverManager().install()), options=options
-            )
+            # self._driver = webdriver.Chrome(
+            #     service=ChromeService(ChromeDriverManager().install()), options=options)
+            self._driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
+
         elif browser.lower() == "firefox":
             from selenium.webdriver.firefox.service import Service as FirefoxService
             from webdriver_manager.firefox import GeckoDriverManager
@@ -60,7 +68,7 @@ class SeleniumRpa:
             raise ValueError("Unsupported browser. Use 'chrome' or 'firefox'.")
         logger.info("Selenium WebDriver initialized.")
 
-        self._driver.maximize_window()
+        # self._driver.maximize_window()
         self.wait = WebDriverWait(self._driver, timeout)
         self.config = config
 
