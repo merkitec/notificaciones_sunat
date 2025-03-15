@@ -86,9 +86,9 @@ class HttpSessionRpa:
         # Open mailbox
         x_bottom_buzon = self.config["XPATHS"]["x_bottom_buzon"]
         workflow = [
-            {"action": "click", "by": By.XPATH, "value": x_bottom_buzon, "delay": 5},
+            {"action": "click", "by": By.XPATH, "value": x_bottom_buzon, "delay": 8},
         ]
-        self._automator.execute_workflow(self.config["WEBSITE"]["url_start"], workflow)
+        self._automator.execute_workflow("", workflow)
         # self.load_info_response()
 
     def close(self):
@@ -103,7 +103,7 @@ class HttpSessionRpa:
         workflow = [
             {"action": "click", "by": By.XPATH, "value": x_bottom_salir, "delay": 5},
         ]
-        self._automator.execute_workflow(self.config["WEBSITE"]["url_start"], workflow)
+        self._automator.execute_workflow("", workflow)
 
 
 if __name__ == "__main__":

@@ -43,7 +43,10 @@ class SeleniumRpa:
             chrome_options.add_argument('--headless')
             chrome_options.add_argument('--disable-dev-shm-usage')
             chrome_options.add_argument("--disable-gpu")
-
+            chrome_options.add_argument("--disable-notifications")
+            chrome_options.add_argument("--disable-popup-blocking")
+            chrome_options.add_argument("--disable-infobars")
+            chrome_options.add_argument("--disable-extensions")
             # options.add_experimental_option("excludeSwitches",['enable-automation'])
             # prefs = {"credentials_enable_service": False,"profile.password_manager_enabled": False}
             # options.add_experimental_option("prefs", prefs)
@@ -190,7 +193,8 @@ class SeleniumRpa:
         :param url: The URL to start automation.
         :param tasks: A list of tasks (e.g., "click", "enter_text").
         """
-        self.open_page(url)
+        if url.strip():
+            self.open_page(url)
 
         for task in tasks:
             action_type = task["action"]
@@ -206,7 +210,7 @@ class SeleniumRpa:
             elif action_type == "navigate":
                 self.open_page(task["url"])
 
-            time.sleep(task.get("delay", 1))  # Optional delay between actions
+            time.sleep(task.get("delay", 2))  # Optional delay between actions
 
     def quit(self):
         """Closes the browser and ends the session."""
