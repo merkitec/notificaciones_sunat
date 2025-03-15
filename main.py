@@ -25,14 +25,14 @@ config.read("config.ini")
 
 # Configure logging
 os.makedirs("logs", exist_ok=True)
-logging.basicConfig(level=logging.INFO, 
+logging.basicConfig(level=logging.DEBUG, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     handlers=[RotatingFileHandler('logs/my_log.log', maxBytes=1000000, backupCount=10,)],
                     datefmt='%Y-%m-%dT%H:%M:%S')
 logger = logging.getLogger(__name__)
 logging.getLogger("seleniumwire.server").setLevel(level=logging.WARNING)
 logging.getLogger("seleniumwire.handler").setLevel(level=logging.WARNING)
-
+logging.getLogger("hpack.hpack").setLevel(level=logging.WARNING)
    
 def main():
     try:

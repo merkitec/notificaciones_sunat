@@ -11,4 +11,4 @@ RUN apt-get update && apt-get install -y wget unzip && \
    apt install -y ./google-chrome-stable_current_amd64.deb && \
    apt-get clean
 
-CMD ["python", "test_no_gui.py"]
+CMD ["python", "main.py"]

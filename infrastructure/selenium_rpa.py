@@ -55,7 +55,10 @@ class SeleniumRpa:
 
             # self._driver = webdriver.Chrome(
             #     service=ChromeService(ChromeDriverManager().install()), options=options)
-            self._driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=chrome_options)
+            self._driver = webdriver.Chrome(
+                service=ChromeService(ChromeDriverManager().install()), 
+                options=chrome_options)
+            logger.info(f"Chrome Driverversion: {self._driver.capabilities['chrome']['chromedriverVersion'].split(' ')}")
 
         elif browser.lower() == "firefox":
             from selenium.webdriver.firefox.service import Service as FirefoxService
@@ -95,6 +98,7 @@ class SeleniumRpa:
         :param value: The locator value.
         :return: The WebElement.
         """
+        logger.debug(f"Waiting for element: {by} - {value}")
         return self.wait.until(EC.visibility_of_element_located((by, value)))
 
     def wait_and_get_elements(self, by, value):
@@ -259,5 +263,7 @@ if __name__ == "__main__":
         automator.execute_workflow(config["WEBSITE"]["url_start"], workflow)
 
         # print("Scraped Data:", data)
+    except Exception as e:
+        print("An error occurred:", e)
     finally:
         automator.quit()
