@@ -80,13 +80,12 @@ class HttpSessionRpa:
 
         # Wait for login to complete
         # time.sleep(wait_time)  # Adjust as necessary or implement explicit waits
-
         # self.load_info_response()
         
         # Open mailbox
         x_bottom_buzon = self.config["XPATHS"]["x_bottom_buzon"]
         workflow = [
-            {"action": "click", "by": By.XPATH, "value": x_bottom_buzon, "delay": 8},
+            {"action": "click", "by": By.XPATH, "value": x_bottom_buzon, "delay": 5},
         ]
         self._automator.execute_workflow("", workflow)
         # self.load_info_response()

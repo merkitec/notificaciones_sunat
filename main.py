@@ -1,5 +1,5 @@
 from argparse import Namespace
-from logging.handlers import RotatingFileHandler
+from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 
 from application.estudio_contable_service import EstudioContableService
 from application.http_session_rpa import HttpSessionRpa
@@ -27,12 +27,13 @@ config.read("config.ini")
 os.makedirs("logs", exist_ok=True)
 logging.basicConfig(level=logging.DEBUG, 
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    handlers=[RotatingFileHandler('logs/my_log.log', maxBytes=1000000, backupCount=10,)],
+                    handlers=[TimedRotatingFileHandler(filename='logs/my_log.log', when="midnight", backupCount=15),
+                        logging.StreamHandler()],
                     datefmt='%Y-%m-%dT%H:%M:%S')
-logger = logging.getLogger(__name__)
 logging.getLogger("seleniumwire.server").setLevel(level=logging.WARNING)
 logging.getLogger("seleniumwire.handler").setLevel(level=logging.WARNING)
 logging.getLogger("hpack.hpack").setLevel(level=logging.WARNING)
+logger = logging.getLogger(__name__)
    
 def main():
     try:
