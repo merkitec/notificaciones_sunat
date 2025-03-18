@@ -12,5 +12,7 @@ RUN apt-get update && apt-get install -y wget unzip && \
    apt-get clean
 
 COPY . .
-
-CMD ["python", "main.py"]
+ENV PORT=8080
+# EXPOSE 8080
+# CMD ["python", "main.py"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]

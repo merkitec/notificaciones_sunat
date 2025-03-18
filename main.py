@@ -34,6 +34,12 @@ logging.getLogger("seleniumwire.server").setLevel(level=logging.WARNING)
 logging.getLogger("seleniumwire.handler").setLevel(level=logging.WARNING)
 logging.getLogger("hpack.hpack").setLevel(level=logging.WARNING)
 logger = logging.getLogger(__name__)
+
+from fastapi import FastAPI
+app = FastAPI()
+@app.get("/")
+async def root():
+    return {"message": "Container succesful executed"}
    
 def main():
     try:
