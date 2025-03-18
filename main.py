@@ -39,21 +39,26 @@ from fastapi import FastAPI
 app = FastAPI()
 @app.get("/")
 async def root():
+    main()
     return {"message": "Container succesful executed"}
    
 def main():
     try:
-        parser = parse_opt()
-        args = parser.parse_args()
-        logger.info(f"Args: {args}")
+        # parser = parse_opt()
+        # args = parser.parse_args()
+        # logger.info(f"Args: {args}")
+        args_extractor = "llm"
+        args_save_to = "db"
         settings = Settings()
 
         extractor = ExtractNotificationManual()
-        if args.extractor == "llm":
+        # if args.extractor == "llm":
+        if args_extractor == "llm":
             extractor = ExtractNotificationLLM()
 
         save = SaveNotificationExcel(config=config)
-        if args.save_to == "db":
+        # if args.save_to == "db":
+        if args_save_to == "db":
             save = SaveNotificationDb(config=config)
 
         process_sunat = NotificationSunat(
