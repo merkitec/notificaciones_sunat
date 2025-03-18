@@ -47,7 +47,7 @@ def main():
         # parser = parse_opt()
         # args = parser.parse_args()
         # logger.info(f"Args: {args}")
-        args_extractor = "llm"
+        args_extractor = "manual"
         args_save_to = "db"
         settings = Settings()
 
