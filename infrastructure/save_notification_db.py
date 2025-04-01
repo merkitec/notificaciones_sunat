@@ -29,7 +29,8 @@ class SaveNotificationDb(SaveNotificationBase):
                 tipo_notificacion[0]["id"],
                 False,
                 datetime.now(timezone.utc).isoformat(),
-                'EXTRACT_PROCESS'
+                'EXTRACT_PROCESS',
+                notification["archivo_url"]
             )
 
     def call_get_ruc_endpoint(self, ruc):
@@ -89,7 +90,8 @@ class SaveNotificationDb(SaveNotificationBase):
         tipo_id: int = None,
         eliminado: bool = False,
         fecha_creacion: str = None,
-        usuario_creador: str = None
+        usuario_creador: str = None,
+        archivo_url: str = None
     ):
         """
         Calls the create_notificacion_endpoint FastAPI endpoint.
@@ -123,7 +125,8 @@ class SaveNotificationDb(SaveNotificationBase):
             "tipo_id": tipo_id,
             "eliminado": eliminado,
             "fecha_creacion": fecha_creacion,
-            "usuario_creador": usuario_creador
+            "usuario_creador": usuario_creador,
+            "archivo_url": archivo_url
         }
         
         # Remove keys where the value is None
