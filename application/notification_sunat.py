@@ -26,7 +26,7 @@ class NotificationSunat():
         for credencial in companies:
             self.session.open_mailbox(credencial)
             notifications = self.extractor.extract(self.session)
-            self.session.close_extraction()
+            # self.session.close_extraction()
 
             self.persist.save(notifications, credencial['RUC'])
 

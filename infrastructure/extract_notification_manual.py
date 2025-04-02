@@ -118,7 +118,7 @@ class ExtractNotificationManual(ExtractNotificationBase):
                                     pdf_bytes = BytesIO(response.content)
                                     gcs_path = f"20606208414/20606208414/{notification_type}/{filename}".replace(" ", "_")
                                     ExtractNotificationManual.upload_to_gcs(pdf_bytes, gcs_path)
-                                    gcs_paths.append(gcs_path)
+                                    gcs_paths.append("gs://notificaciones-sunat-store/" + gcs_path)
                                     # pdf_text = "".join(page.extract_text() or "" for page in reader.pages)
                                     # logger.info(f"Texto extraído del PDF:{pdf_text[:1000]}")
                                 except Exception as e:
@@ -137,7 +137,7 @@ class ExtractNotificationManual(ExtractNotificationBase):
                     "subject": subject,
                     "publish_date": publish_date,
                     "type": notification_type,
-                    "archivo_url": ",".join(gcs_paths)
+                    "url_archivo": ",".join(gcs_paths)
                 }
                 notification_data.append(notification_info)
                 
