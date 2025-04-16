@@ -13,3 +13,5 @@ pydantic-settings
 lxml
 fastapi
 uvicorn
+google-cloud-storage
+setuptools

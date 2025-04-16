@@ -1,4 +1,5 @@
-FROM python:3.10-slim
+FROM python:3.12-slim
+EXPOSE 8080
 
 WORKDIR /app
 
@@ -12,7 +13,6 @@ RUN apt-get update && apt-get install -y wget unzip && \
    apt-get clean
 
 COPY . .
-ENV PORT=8080
-# EXPOSE 8080
+#ENV PORT=8080
 # CMD ["python", "main.py"]
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
