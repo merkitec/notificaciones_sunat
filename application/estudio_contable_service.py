@@ -1,5 +1,8 @@
 import json
+import logging
 import requests
+
+logger = logging.getLogger(__name__)
 
 class EstudioContableService():
     def __init__(self, config=None):
@@ -18,7 +21,8 @@ class EstudioContableService():
         # Construct the endpoint URL
         base_url = self.config["URLS"]["persist_base_url"]
         url = f"{base_url.rstrip('/')}/estudios_contables/ruc/{numero_ruc}"
-
+        logger.info(f"Calling endpoint: {url}")
+        
         # Send the GET request
         response = requests.get(url)
 

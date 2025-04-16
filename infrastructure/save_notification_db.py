@@ -1,7 +1,10 @@
+import logging
 from application.save_notification_base import SaveNotificationBase
 import requests
 from datetime import datetime, timezone
 import json
+
+logger = logging.getLogger(__name__)
 
 class SaveNotificationDb(SaveNotificationBase):
     def __init__(self, config=None):
@@ -49,6 +52,7 @@ class SaveNotificationDb(SaveNotificationBase):
         # Construct the endpoint URL
         base_url = self.config["URLS"]["persist_base_url"]
         url = f"{base_url.rstrip('/')}/rucs/{ruc}"
+        logger.info(f"Calling endpoint: {url}")
 
         # Send the GET request
         response = requests.get(url)
@@ -72,6 +76,7 @@ class SaveNotificationDb(SaveNotificationBase):
         # Construct the endpoint URL
         base_url = self.config["URLS"]["persist_base_url"]
         url = f"{base_url.rstrip('/')}/tipos_notificacion?skip=0&limit=100"
+        logger.info(f"Calling endpoint: {url}")
 
         # Send the GET request
         response = requests.get(url)
@@ -135,6 +140,7 @@ class SaveNotificationDb(SaveNotificationBase):
         # Construct the endpoint URL
         base_url = self.config["URLS"]["persist_base_url"]
         url = f"{base_url.rstrip('/')}/notificaciones/"
+        logger.info(f"Calling endpoint: {url}")
         
         # Send the POST request
         response = requests.post(url, json=payload)

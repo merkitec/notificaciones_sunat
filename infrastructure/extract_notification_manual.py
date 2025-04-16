@@ -5,7 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import logging
 import os
 import time
-from PyPDF2 import PdfReader
+# from PyPDF2 import PdfReader
 from io import BytesIO
 import requests
 
@@ -14,7 +14,6 @@ from application.extract_notification_base import ExtractNotificationBase
 
 from google.cloud import storage
 import logging
-
 
 logger = logging.getLogger(__name__)
 
