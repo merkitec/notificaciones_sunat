@@ -1,6 +1,7 @@
 from argparse import Namespace
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 
+from application.estudio_contable_not_found_error import EstudioContableNotFoundError
 from application.estudio_contable_service import EstudioContableService
 from application.http_session_rpa import HttpSessionRpa
 from application.notification_sunat import NotificationSunat
@@ -35,43 +36,51 @@ logging.getLogger("seleniumwire.handler").setLevel(level=logging.WARNING)
 logging.getLogger("hpack.hpack").setLevel(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 app = FastAPI()
 @app.get("/")
-async def root():
-    main()
-    return {"message": "Container succesful executed"}
+async def root(ESTUDIO_CONTABLE_RUC:str):
+    try:
+        if ESTUDIO_CONTABLE_RUC is None:
+            raise HttpException(status_code=400, detail="Please provide a RUC")
+        os.environ["ESTUDIO_CONTABLE_RUC"] = ESTUDIO_CONTABLE_RUC
+        logger.info(f"ESTUDIO_CONTABLE_RUC: {os.environ["ESTUDIO_CONTABLE_RUC"]}")
+        main()
+        return {"message": "Notification processing completed"}
+    except EstudioContableNotFoundError as e:
+        logger.exception(str(e))
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as ex:
+        logger.exception(str(ex))
+        raise HTTPException(status_code=500, detail="Internal Server Error")
    
 def main():
-    try:
-        # parser = parse_opt()
-        # args = parser.parse_args()
-        # logger.info(f"Args: {args}")
-        args_extractor = "manual"
-        args_save_to = "db"
-        settings = Settings()
+    # parser = parse_opt()
+    # args = parser.parse_args()
+    # logger.info(f"Args: {args}")
+    args_extractor = "manual"
+    args_save_to = "db"
+    settings = Settings()
 
-        extractor = ExtractNotificationManual()
-        # if args.extractor == "llm":
-        if args_extractor == "llm":
-            extractor = ExtractNotificationLLM()
+    extractor = ExtractNotificationManual()
+    # if args.extractor == "llm":
+    if args_extractor == "llm":
+        extractor = ExtractNotificationLLM()
 
-        save = SaveNotificationExcel(config=config)
-        # if args.save_to == "db":
-        if args_save_to == "db":
-            save = SaveNotificationDb(config=config)
+    save = SaveNotificationExcel(config=config)
+    # if args.save_to == "db":
+    if args_save_to == "db":
+        save = SaveNotificationDb(config=config)
 
-        process_sunat = NotificationSunat(
-            extractor, 
-            HttpSessionRpa(headless=True, config=config),
-            persist=save,
-            estudio_contable_svc=EstudioContableService(config=config),
-            settings=settings)
+    process_sunat = NotificationSunat(
+        extractor, 
+        HttpSessionRpa(headless=True, config=config),
+        persist=save,
+        estudio_contable_svc=EstudioContableService(config=config),
+        settings=settings)
 
-        process_sunat.process_notification()
+    process_sunat.process_notification()
 
-    except Exception as ex:
-        logger.exception(ex)
 
 if __name__ == "__main__":
     import uvicorn

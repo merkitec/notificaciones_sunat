@@ -2,6 +2,8 @@ import json
 import logging
 import requests
 
+from application.estudio_contable_not_found_error import EstudioContableNotFoundError
+
 logger = logging.getLogger(__name__)
 
 class EstudioContableService():
@@ -11,7 +13,9 @@ class EstudioContableService():
     def get_rucs_by_estudio_contable(self, numero_ruc):
         # Call the endpoint and get the response
         response = self.__call_get_estudios_contables_by_ruc_endpoint(numero_ruc)
-
+        if response is None:
+            raise EstudioContableNotFoundError(f"Estudio Contable {numero_ruc} not found")
+        
         # Return the list of RUCs
         return [{"RUC": r['numero_ruc'], 
                  "USER":r['usuario_buzon'], 
