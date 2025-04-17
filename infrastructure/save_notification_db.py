@@ -12,7 +12,7 @@ class SaveNotificationDb(SaveNotificationBase):
         self.config = config
 
     def save(self, notifications, ruc):
-        print("Guardando en base de datos")
+        logger.info("Guardando en base de datos")
 
         # Get all the Notificacion Types
         notificacion_types = self.call_get_notificacion_types_endpoint()
@@ -148,6 +148,7 @@ class SaveNotificationDb(SaveNotificationBase):
         # Raise an exception for HTTP error responses
         response.raise_for_status()
         
+        logger.debug(f"Save Notificacion = {notificacion_id} - request status: {response.status_code}")
         # Return the response as JSON
         return response.json()
 

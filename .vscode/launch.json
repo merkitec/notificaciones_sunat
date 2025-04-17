@@ -5,6 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python Debugger: FastAPI",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "main:app",
+                "--reload",
+                "--host", "0.0.0.0",
+                "--port", "8080"
+            ],
+            "jinja": true
+        },
+        {
             "name": "Current File",
             "type": "debugpy",
             "request": "launch",
@@ -18,8 +31,10 @@
             "program": "main.py",
             "console": "integratedTerminal",
             "args": [
-                "--extractor", "manual",
-                "--save_to", "db"
+                "--extractor",
+                "manual",
+                "--save_to",
+                "db"
             ]
         }
     ]

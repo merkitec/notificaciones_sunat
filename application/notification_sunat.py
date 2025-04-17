@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import pandas as pd
 
@@ -7,6 +8,7 @@ from application.save_notification_base import SaveNotificationBase
 from cross_cutting.settings import Settings
 from infrastructure.extract_notification_manual import ExtractNotificationManual
 from application.http_session_rpa import HttpSessionRpa
+logger = logging.getLogger(__name__)
 
 class NotificationSunat():
     def __init__(self, extractor: ExtractNotificationManual, 
@@ -24,6 +26,7 @@ class NotificationSunat():
         companies = self.estudio_contable_svc.get_rucs_by_estudio_contable(self.settings.ESTUDIO_CONTABLE_RUC)
 
         for credencial in companies:
+            logger.info(f"Credencial Ruc: {credencial["RUC"]}")
             self.session.open_mailbox(credencial)
             notifications = self.extractor.extract(self.session)
             # self.session.close_extraction()
