@@ -141,14 +141,15 @@ class SaveNotificationDb(SaveNotificationBase):
         base_url = self.config["URLS"]["persist_base_url"]
         url = f"{base_url.rstrip('/')}/notificaciones/"
         logger.info(f"Calling endpoint: {url}")
-        
+        logger.debug(json.dumps(payload, indent=2))
+
         # Send the POST request
         response = requests.post(url, json=payload)
         
         # Raise an exception for HTTP error responses
         response.raise_for_status()
         
-        logger.debug(f"Save Notificacion = {notificacion_id} - request status: {response.status_code}")
+        logger.info(f"Save Notificacion = {notificacion_id} - request status: {response.status_code}")
         # Return the response as JSON
         return response.json()
 

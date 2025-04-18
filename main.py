@@ -52,7 +52,7 @@ async def root(ESTUDIO_CONTABLE_RUC:str):
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as ex:
         logger.exception(str(ex))
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(ex))
    
 def main():
     # parser = parse_opt()
