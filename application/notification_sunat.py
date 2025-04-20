@@ -28,7 +28,9 @@ class NotificationSunat():
         for credencial in companies:
             logger.info(f"Credencial Ruc: {credencial["RUC"]}")
             self.session.open_mailbox(credencial)
-            notifications = self.extractor.extract(self.session)
+            notifications = self.extractor.extract(self.session, 
+                                                   { "estudio_contable_ruc": self.settings.ESTUDIO_CONTABLE_RUC,
+                                                     "ruc": credencial["RUC"] })
             # self.session.close_extraction()
 
             self.persist.save(notifications, credencial['RUC'])

@@ -62,7 +62,7 @@ def main():
     args_save_to = "db"
     settings = Settings()
 
-    extractor = ExtractNotificationManual()
+    extractor = ExtractNotificationManual(config=config)
     # if args.extractor == "llm":
     if args_extractor == "llm":
         extractor = ExtractNotificationLLM()

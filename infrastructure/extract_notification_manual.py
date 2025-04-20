@@ -18,11 +18,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ExtractNotificationManual(ExtractNotificationBase):
-    def __init__(self):
-        pass
+    def __init__(self, config):
+        self.config = config
 
-    @staticmethod
-    def upload_to_gcs(pdf_content: bytes, destination_path: str):
+    # @staticmethod
+    def upload_to_gcs(self, pdf_content: bytes, destination_path: str):
         bucket_name = "notificaciones-sunat-store"
 
         try:
@@ -37,9 +37,63 @@ class ExtractNotificationManual(ExtractNotificationBase):
         except Exception as e:
             logger.error(f"Error al subir archivo a GCS: {e}")
 
+    def download_attachment(self, page_source, cookies_dict, notification_type, context):
+        soup_detail = BeautifulSoup(page_source, 'html.parser')
 
-    def extract(self, session: HttpSessionRpa):
-        url = "https://ww1.sunat.gob.pe/ol-ti-itvisornoti/visor/bajarArchivo"
+        download_links = soup_detail.find_all('a', href=lambda x: x and "goArchivoDescarga" in x)
+        gcs_paths = []
+
+        for download_link in download_links:
+            onclick_text = download_link['href']
+            params = onclick_text.split('goArchivoDescarga(')[1].split(')')[0].split(',')
+            id_archivo, ind_mensaje, id_mensaje = [p.strip() for p in params]
+
+            logger.info(f"Descargando archivo - ID Mensaje: {id_mensaje}, ID Archivo: {id_archivo}, Ind Mensaje: {ind_mensaje}")
+
+            data = {
+                "accion": "archivo",
+                "idMensaje": id_mensaje,
+                "idArchivo": id_archivo,
+                "sistema": ind_mensaje,
+                "indMensaje": "5"
+            }
+            url = self.config["WEBSITE"]["url_download_attach"]
+            response = requests.post(url, data=data, cookies=cookies_dict)
+
+            if response.status_code == 200:
+                content_type = response.headers.get('Content-Type')
+                content_disposition = response.headers.get('Content-Disposition', '')
+
+                filename = "{}_{}_{}".format(id_mensaje, id_archivo, ind_mensaje)
+                if "filename=" in content_disposition:
+                    filename += "_" + content_disposition.split("filename=")[-1].strip().replace('"', '')
+
+                # file_path = os.path.join("descargas", filename)
+                # os.makedirs("descargas", exist_ok=True)
+                # with open(file_path, "wb") as f:
+                #     f.write(response.content)
+                # logger.info(f"Archivo guardado: {file_path}")
+
+                if "application/pdf" in content_type:
+                    try:
+                        pdf_bytes = BytesIO(response.content)
+                        gcs_path = f"{context['estudio_contable_ruc']}/{context['ruc']}/{notification_type}/{filename}".replace(" ", "_")
+                        self.upload_to_gcs(pdf_bytes, gcs_path)
+                        gcs_paths.append("gs://notificaciones-sunat-store/" + gcs_path)
+                        # pdf_text = "".join(page.extract_text() or "" for page in reader.pages)
+                        # logger.info(f"Texto extraído del PDF:{pdf_text[:1000]}")
+                    except Exception as e:
+                        gcs_path = None
+                        logger.warning(f"Error al subir el PDF a GCS: {e}")
+                else:
+                    logger.info(f"Archivo descargado, pero no es un PDF. Tipo de contenido: {content_type}")
+            else:
+                logger.warning(f"No se pudo descargar el archivo {id_archivo}, status: {response.status_code}")
+
+        return gcs_paths
+
+    def extract(self, session: HttpSessionRpa, context):
+        # url = "https://ww1.sunat.gob.pe/ol-ti-itvisornoti/visor/bajarArchivo"
         notification_data = []
 
         try:
@@ -69,65 +123,12 @@ class ExtractNotificationManual(ExtractNotificationBase):
                     logger.warning(f"Elemento no encontrado: {e}")
                     continue
 
-                session.automator.driver.switch_to.frame(session.automator.driver.find_element(By.NAME, "contenedorMensaje"))
-
-                cookies_dict = {cookie['name']: cookie['value'] for cookie in session.automator.driver.get_cookies()}
-
                 try:
+                    session.automator.driver.switch_to.frame(session.automator.driver.find_element(By.NAME, "contenedorMensaje"))
+                    cookies_dict = {cookie['name']: cookie['value'] for cookie in session.automator.driver.get_cookies()}
+
                     page_source = session.automator.driver.page_source
-                    soup_detail = BeautifulSoup(page_source, 'html.parser')
-
-                    download_links = soup_detail.find_all('a', href=lambda x: x and "goArchivoDescarga" in x)
-                    gcs_paths = []
-
-                    for download_link in download_links:
-                        onclick_text = download_link['href']
-                        params = onclick_text.split('goArchivoDescarga(')[1].split(')')[0].split(',')
-                        id_archivo, ind_mensaje, id_mensaje = [p.strip() for p in params]
-
-                        logger.info(f"Descargando archivo - ID Mensaje: {id_mensaje}, ID Archivo: {id_archivo}, Ind Mensaje: {ind_mensaje}")
-
-                        data = {
-                            "accion": "archivo",
-                            "idMensaje": id_mensaje,
-                            "idArchivo": id_archivo,
-                            "sistema": ind_mensaje,
-                            "indMensaje": "5"
-                        }
-
-                        response = requests.post(url, data=data, cookies=cookies_dict)
-
-                        if response.status_code == 200:
-                            content_type = response.headers.get('Content-Type')
-                            content_disposition = response.headers.get('Content-Disposition', '')
-
-                            filename = "{}_{}_{}".format(id_mensaje, id_archivo, ind_mensaje)
-                            if "filename=" in content_disposition:
-                                filename += "_" + content_disposition.split("filename=")[-1].strip().replace('"', '')
-                            # file_path = os.path.join("descargas", filename)
-                            # os.makedirs("descargas", exist_ok=True)
-
-                            # with open(file_path, "wb") as f:
-                            #     f.write(response.content)
-
-                            # logger.info(f"Archivo guardado: {file_path}")
-
-                            if "application/pdf" in content_type:
-                                try:
-                                    pdf_bytes = BytesIO(response.content)
-                                    gcs_path = f"20606208414/20606208414/{notification_type}/{filename}".replace(" ", "_")
-                                    ExtractNotificationManual.upload_to_gcs(pdf_bytes, gcs_path)
-                                    gcs_paths.append("gs://notificaciones-sunat-store/" + gcs_path)
-                                    # pdf_text = "".join(page.extract_text() or "" for page in reader.pages)
-                                    # logger.info(f"Texto extraído del PDF:{pdf_text[:1000]}")
-                                except Exception as e:
-                                    gcs_path = None
-                                    logger.warning(f"Error al subir el PDF a GCS: {e}")
-                            else:
-                                logger.info(f"Archivo descargado, pero no es un PDF. Tipo de contenido: {content_type}")
-                        else:
-                            logger.warning(f"No se pudo descargar el archivo {id_archivo}, status: {response.status_code}")
-
+                    gcs_paths = self.download_attachment(page_source, cookies_dict, notification_type, context)
                 except Exception as e:
                     logger.warning(f"No se pudo acceder al iframe del mensaje: {e}")
 
