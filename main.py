@@ -34,6 +34,9 @@ logging.basicConfig(level=logging.DEBUG,
 logging.getLogger("seleniumwire.server").setLevel(level=logging.WARNING)
 logging.getLogger("seleniumwire.handler").setLevel(level=logging.WARNING)
 logging.getLogger("hpack.hpack").setLevel(level=logging.WARNING)
+logging.getLogger("urllib3.connectionpool").setLevel(level=logging.WARNING)
+logging.getLogger("selenium.webdriver.remote.remote_connection").setLevel(level=logging.WARNING)
+logging.getLogger("hpack.table").setLevel(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI, HTTPException

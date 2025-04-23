@@ -35,6 +35,7 @@ class SaveNotificationDb(SaveNotificationBase):
                 'EXTRACT_PROCESS',
                 notification["url_archivo"]
             )
+            logger.info(f"Notification saved: {notification['id']}")
 
     def call_get_ruc_endpoint(self, ruc):
         """

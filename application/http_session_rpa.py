@@ -62,6 +62,7 @@ class HttpSessionRpa:
             logger.info(cookie)
 
     def login(self, RUC, USER, PSW):
+        logger.info(f"Logging in with RUC: {RUC}")
         x_input_login_ruc = self.config["XPATHS"]["x_input_login_ruc"]
         x_input_login_user = self.config["XPATHS"]["x_input_login_user"]
         x_input_login_psw = self.config["XPATHS"]["x_input_login_psw"]
@@ -74,6 +75,7 @@ class HttpSessionRpa:
             {"action": "click", "by": By.XPATH, "value": x_bottom_login_ingreso, "delay": 5},
         ]
         self._automator.execute_workflow(self.config["WEBSITE"]["url_start"], workflow)
+        logger.info(f"Login completed. RUC: {RUC}")
 
     def open_mailbox(self, login_credentials, wait_time=5):
         self.login(login_credentials["RUC"], login_credentials["USER"], login_credentials["PSW"])
@@ -83,12 +85,18 @@ class HttpSessionRpa:
         # self.load_info_response()
         
         # Open mailbox
-        x_bottom_buzon = self.config["XPATHS"]["x_bottom_buzon"]
-        workflow = [
-            {"action": "click", "by": By.XPATH, "value": x_bottom_buzon, "delay": 5},
-        ]
-        self._automator.execute_workflow("", workflow)
-        # self.load_info_response()
+        try:
+            x_bottom_buzon = self.config["XPATHS"]["x_bottom_buzon"]
+            workflow = [
+                {"action": "click", "by": By.XPATH, "value": x_bottom_buzon, "delay": 5},
+            ]
+            self._automator.execute_workflow("", workflow)
+            logger.info(f"Mailbox opened. RUC: {login_credentials['RUC']}")
+            # self.load_info_response()
+        except Exception as e:
+            self.close()
+            logger.error(f"Error opening mailbox: {e}")
+            raise
 
     def close(self):
         """
@@ -103,6 +111,7 @@ class HttpSessionRpa:
             {"action": "click", "by": By.XPATH, "value": x_bottom_salir, "delay": 5},
         ]
         self._automator.execute_workflow("", workflow)
+        logger.info(f"Mailbox closed.")
 
 
 if __name__ == "__main__":

@@ -40,7 +40,7 @@ class SeleniumRpa:
             # options.add_argument('--disable-dev-shm-usage')
             chrome_options = Options()
             chrome_options.add_argument('--no-sandbox')
-            chrome_options.add_argument("--window-size=1920,1080")
+            chrome_options.add_argument("--window-size=1680,1280")
             chrome_options.add_argument("--start-maximized")
             chrome_options.add_argument('--headless')
             chrome_options.add_argument('--disable-dev-shm-usage')
@@ -92,6 +92,7 @@ class SeleniumRpa:
         :param url: The URL to open.
         """
         self._driver.get(url)
+        logger.info(f"Opened page: {url}")
 
     def wait_and_get_element(self, by, value):
         """
@@ -222,6 +223,7 @@ class SeleniumRpa:
     def quit(self):
         """Closes the browser and ends the session."""
         self._driver.quit()
+        logger.info("Selenium WebDriver closed.")
 
 # Example Usage
 if __name__ == "__main__":

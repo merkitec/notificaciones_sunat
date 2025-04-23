@@ -101,9 +101,12 @@ class ExtractNotificationManual(ExtractNotificationBase):
                 EC.frame_to_be_available_and_switch_to_it((By.NAME, "iframeApplication"))
             )
 
+            lista = session.automator.driver.find_element(By.XPATH, '//ul[@id="listaMensajes"]')
+            if not lista.text:
+                return notification_data
+
             notification_elements = WebDriverWait(session.automator.driver, 10).until(
-                EC.visibility_of_all_elements_located((By.XPATH, '//ul[@id="listaMensajes"]/li'))
-            )
+                EC.visibility_of_all_elements_located((By.XPATH, '//ul[@id="listaMensajes"]/li')))
 
             for notification in notification_elements:
                 logger.debug(notification.get_attribute("outerHTML"))
@@ -144,8 +147,12 @@ class ExtractNotificationManual(ExtractNotificationBase):
                 session.automator.driver.switch_to.default_content()
                 WebDriverWait(session.automator.driver, 10).until(EC.frame_to_be_available_and_switch_to_it((By.NAME, "iframeApplication")))
 
+        except TimeoutError as e:
+            logger.error(f"Error inesperado en el proceso de extracción: {e}")
+        # except Notfound
         except Exception as e:
             logger.error(f"Error inesperado en el proceso de extracción: {e}")
         finally:
-            session.automator.driver.quit()
+            # session.automator.driver.quit()
+            session.automator.driver.switch_to.default_content()
         return notification_data
