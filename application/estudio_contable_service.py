@@ -19,7 +19,8 @@ class EstudioContableService():
         # Return the list of RUCs
         return [{"RUC": r['numero_ruc'], 
                  "USER":r['usuario_buzon'], 
-                 "PSW": r['password_buzon']} for r in response['rucs']]
+                 "PSW": r['password_buzon'],
+                 "LAST": r['fecha_ultima_notificacion']} for r in response['rucs']]
 
     def __call_get_estudios_contables_by_ruc_endpoint(self, numero_ruc):
         # Construct the endpoint URL

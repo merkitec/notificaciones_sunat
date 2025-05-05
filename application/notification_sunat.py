@@ -25,15 +25,18 @@ class NotificationSunat():
     def process_notification(self):
         companies = self.estudio_contable_svc.get_rucs_by_estudio_contable(self.settings.ESTUDIO_CONTABLE_RUC)
 
-        for credencial in companies:
-            logger.info(f"Credencial RUC: {credencial["RUC"]}")
-            self.session.open_mailbox(credencial)
+        for context in companies:
+            logger.info(f"Credencial RUC: {context["RUC"]}")
+            self.session.open_mailbox(context)
             notifications = self.extractor.extract(self.session, 
-                                                   { "estudio_contable_ruc": self.settings.ESTUDIO_CONTABLE_RUC,
-                                                     "ruc": credencial["RUC"] })
+                                                   { 
+                                                       "estudio_contable_ruc": self.settings.ESTUDIO_CONTABLE_RUC,
+                                                        "ruc": context["RUC"],
+                                                        "last_date": context["LAST"]
+                                                   })
             self.session.close_extraction()
             
-            self.persist.save(notifications, credencial['RUC'])
+            self.persist.save(notifications, context['RUC'])
 
 
         self.session.close()

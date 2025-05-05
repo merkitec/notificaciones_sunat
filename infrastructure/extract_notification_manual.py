@@ -14,6 +14,7 @@ from application.extract_notification_base import ExtractNotificationBase
 
 from google.cloud import storage
 import logging
+from dateutil import parser
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +109,35 @@ class ExtractNotificationManual(ExtractNotificationBase):
             notification_elements = WebDriverWait(session.automator.driver, 10).until(
                 EC.visibility_of_all_elements_located((By.XPATH, '//ul[@id="listaMensajes"]/li')))
 
-            for notification in notification_elements:
+            def is_recent_than(notification, last_date):
+                if last_date is None:
+                    return True
+                    
+                item = BeautifulSoup(notification.get_attribute("outerHTML"), 'html.parser')
+                
+                try:
+                    # Parse both dates
+                    valid_last_date = parser.parse(last_date)
+                    item_date = parser.parse(item.find('small', class_="text-muted fecPublica").text)
+                    
+                    # Make both timezone-aware or both timezone-naive
+                    if valid_last_date.tzinfo is not None and item_date.tzinfo is None:
+                        # If last_date has timezone but item_date doesn't, make item_date timezone-aware
+                        item_date = item_date.replace(tzinfo=valid_last_date.tzinfo)
+                    elif valid_last_date.tzinfo is None and item_date.tzinfo is not None:
+                        # If item_date has timezone but last_date doesn't, make last_date timezone-aware
+                        valid_last_date = valid_last_date.replace(tzinfo=item_date.tzinfo)
+                    
+                    return item_date >= valid_last_date
+                except Exception as e:
+                    logger.warning(f"Error comparing dates: {e}")
+                    return True  # Default to including the notification if there's an error
+                
+            new_elements = [n for n in notification_elements
+                        if is_recent_than(n, context["last_date"])
+                    ]
+
+            for notification in new_elements:
                 logger.debug(notification.get_attribute("outerHTML"))
                 soup = BeautifulSoup(notification.get_attribute("outerHTML"), 'html.parser')
 
