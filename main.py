@@ -45,7 +45,7 @@ app = FastAPI()
 async def root(ESTUDIO_CONTABLE_RUC:str):
     try:
         if ESTUDIO_CONTABLE_RUC is None:
-            raise HttpException(status_code=400, detail="Please provide a RUC")
+            raise HTTPException(status_code=400, detail="Please provide a RUC")
         os.environ["ESTUDIO_CONTABLE_RUC"] = ESTUDIO_CONTABLE_RUC
         logger.info(f"ESTUDIO_CONTABLE_RUC: {os.environ["ESTUDIO_CONTABLE_RUC"]}")
         main()
