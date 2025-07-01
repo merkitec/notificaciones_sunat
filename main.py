@@ -39,11 +39,13 @@ logging.getLogger("selenium.webdriver.remote.remote_connection").setLevel(level=
 logging.getLogger("hpack.table").setLevel(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 app = FastAPI()
-@app.get("/")
-async def root(ESTUDIO_CONTABLE_RUC:str):
+@app.post("/")
+async def root(request: Request):
     try:
+        data = await request.json()
+        ESTUDIO_CONTABLE_RUC = data.get("ESTUDIO_CONTABLE_RUC")
         if ESTUDIO_CONTABLE_RUC is None:
             raise HTTPException(status_code=400, detail="Please provide a RUC")
         os.environ["ESTUDIO_CONTABLE_RUC"] = ESTUDIO_CONTABLE_RUC
