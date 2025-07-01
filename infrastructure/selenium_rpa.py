@@ -137,6 +137,37 @@ class SeleniumRpa:
         element = self.wait_and_get_element(by, value)
         return element
 
+    def find_element(self, by, value):
+        """
+        Finds an element.
+
+        :param by: Locator strategy.
+        :param value: The locator value.
+        :return: The element.
+        """
+        try:
+            element = self._driver.find_element(by, value)
+            return element
+        except Exception as e:
+            logger.error("Error finding element: %s", e)
+            return None
+
+    def find_elements(self, by, value):
+        """
+        Finds all elements.
+
+        :param by: Locator strategy.
+        :param value: The locator value.
+        :return: The elements.
+        """
+        try:
+            elements = self._driver.find_elements(by, value)
+            return elements
+        except Exception as e:
+            logger.error("Error finding elements: %s", e)
+            return []
+
+
     def get_all_elements(self, by, value):
         """
         Gets all the elements of a HTML Tag.

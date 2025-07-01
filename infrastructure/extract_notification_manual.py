@@ -118,7 +118,7 @@ class ExtractNotificationManual(ExtractNotificationBase):
                 try:
                     # Parse both dates
                     valid_last_date = parser.parse(last_date)
-                    item_date = parser.parse(item.find('small', class_="text-muted fecPublica").text)
+                    item_date = parser.parse(item.find('small', class_="text-muted fecPublica").text, parser.parserinfo(dayfirst=True))
                     
                     # Make both timezone-aware or both timezone-naive
                     if valid_last_date.tzinfo is not None and item_date.tzinfo is None:
@@ -136,9 +136,11 @@ class ExtractNotificationManual(ExtractNotificationBase):
             new_elements = [n for n in notification_elements
                         if is_recent_than(n, context["last_date"])
                     ]
+            logger.info(f"Nuevas Notificaciones: {len(new_elements)}")
+            logger.info(f"Última Notificación: {context['last_date']}")
 
             for notification in new_elements:
-                logger.debug(notification.get_attribute("outerHTML"))
+                # logger.debug(notification.get_attribute("outerHTML"))
                 soup = BeautifulSoup(notification.get_attribute("outerHTML"), 'html.parser')
 
                 subject = soup.find('a', class_="linkMensaje text-muted").text

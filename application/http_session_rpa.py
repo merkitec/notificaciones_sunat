@@ -36,31 +36,6 @@ class HttpSessionRpa:
     def automator(self) -> SeleniumRpa:
         return self._automator
     
-    # def load_info_response(self, response_cookies=None):
-    #     self.current_cookies = self._automator.driver.get_cookies()
-    #     self.__logging_info_cookies(self.current_cookies, "Web driver cookies info:")
-
-    #     # Extract cookies from Selenium and add them to requests session
-    #     selenium_cookies = self._automator.driver.get_cookies()
-    #     for cookie in selenium_cookies:
-    #         self.request_session.cookies.set(cookie['name'], cookie['value'], domain=cookie.get('domain'), path=cookie['path'])
-    #     logger.info("Cookies transferred to requests session.")
-    #     self.__logging_info_cookies(self.request_session.cookies, "Transferred cookies info:")
-
-    #     if not response_cookies is None:
-    #         for cookie in response_cookies:
-    #             self.request_session.cookies.set(cookie.name, cookie.value, domain=cookie.domain, path=cookie.path)
-
-    #     # Optionally, set headers like User-Agent to mimic the browser
-    #     user_agent = self._automator.driver.execute_script("return navigator.userAgent;")
-    #     self.request_session.headers.update({'User-Agent': user_agent})
-    #     logger.info(f"User-Agent set to: {user_agent}")
-
-    def __logging_info_cookies(self, cookies, msg):
-        logger.info(msg)
-        for cookie in cookies:
-            logger.info(cookie)
-
     def login(self, RUC, USER, PSW):
         logger.info(f"Logging in with RUC: {RUC}")
         x_input_login_ruc = self.config["XPATHS"]["x_input_login_ruc"]
@@ -77,12 +52,45 @@ class HttpSessionRpa:
         self._automator.execute_workflow(self.config["WEBSITE"]["url_start"], workflow)
         logger.info(f"Login completed. RUC: {RUC}")
 
+    def __modal_validation_datos(self):
+        modal = self._automator.find_element(By.XPATH, self.config["XPATHS"]["x_modal_valida_datos"])
+        return not modal is None
+    
+    def __process_modal_validation_datos(self):
+        x_button_cerrar = self.config["XPATHS"]["x_modal_valida_datos_button"]
+        workflow = [
+            {"action": "click", "by": By.XPATH, "value": x_button_cerrar, "delay": 2},
+        ]
+        self._automator.execute_workflow("", workflow)
+
+    def __modal_validation_datos_informativo(self):
+        modal = self._automator.find_element(By.XPATH, self.config["XPATHS"]["x_modal_valida_datos_informativo"])
+        return not modal is None
+
+    def __process_modal_validation_datos_informativo(self):
+        button_aceptar = self.config["XPATHS"]["x_modal_valida_datos_informativo_button"]
+        workflow = [
+            {"action": "click", "by": By.XPATH, "value": button_aceptar, "delay": 2},
+        ]
+        self._automator.execute_workflow("", workflow)
+
+    def clear_modal_validation_datos(self):
+        _iframe = self._automator.find_element(By.ID, "ifrVCE")
+        if _iframe and _iframe.is_displayed() and _iframe.is_enabled():
+            self._automator.driver.switch_to.frame(_iframe)
+
+            if self.__modal_validation_datos_informativo():
+                self.__process_modal_validation_datos_informativo()
+
+            if self.__modal_validation_datos():
+                self.__process_modal_validation_datos()
+
+            self._automator.driver.switch_to.default_content()
+
     def open_mailbox(self, login_credentials, wait_time=5):
         self.login(login_credentials["RUC"], login_credentials["USER"], login_credentials["PSW"])
 
-        # Wait for login to complete
-        # time.sleep(wait_time)  # Adjust as necessary or implement explicit waits
-        # self.load_info_response()
+        self.clear_modal_validation_datos()
         
         # Open mailbox
         try:
