@@ -25,7 +25,7 @@ class NotificationSunat():
     def process_notification(self):
         companies = self.estudio_contable_svc.get_rucs_by_estudio_contable(self.settings.ESTUDIO_CONTABLE_RUC)
         logger.info(f"Rucs: {len(companies)}")
-        logger.info(f"{json.dumps({k: v for k, v in companies.items() if k == "RUC"}, indent=4)}")
+        logger.info(f"RUC values: {json.dumps([context['RUC'] for context in companies], indent=4)}")
         for context in companies:
             logger.info(f"Credencial RUC: {context["RUC"]}")
             self.session.open_mailbox(context)
